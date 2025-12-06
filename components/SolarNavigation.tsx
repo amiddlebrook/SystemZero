@@ -1,144 +1,135 @@
-import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { NavNode, Phase } from '../types';
-import { Activity, BarChart3, BrainCircuit, Cpu, Layers, MessageSquare, Terminal } from 'lucide-react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ModuleID } from '../types';
 
-interface SolarNavigationProps {
-  activePhase: Phase;
-  onPhaseChange: (phase: Phase) => void;
+interface CentralCommandProps {
+  activeModule: ModuleID | null;
+  onActivate: (id: ModuleID) => void;
+  onReset: () => void;
 }
 
-const NODES: NavNode[] = [
-  { id: Phase.DASHBOARD, label: 'Macro Dashboard', icon: Terminal, shortCode: 'MACRO', status: 'active' },
-  { id: Phase.MARKETS, label: 'Liquidity Analysis', icon: Activity, shortCode: 'LIQ', status: 'complete' },
-  { id: Phase.FACTORS, label: 'Alpha Factors', icon: Layers, shortCode: 'ALPHA', status: 'complete' },
-  { id: Phase.FUSION, label: 'Signal Fusion', icon: BrainCircuit, shortCode: 'SIG', status: 'active' },
-  { id: Phase.EXECUTION, label: 'Algo Execution', icon: Cpu, shortCode: 'ALGO', status: 'pending' },
-  { id: Phase.PORTFOLIO, label: 'Portfolio Risk', icon: BarChart3, shortCode: 'RISK', status: 'locked' },
-  { id: Phase.AI, label: 'Quant Assistant', icon: MessageSquare, shortCode: 'AI', status: 'active' },
-];
+export const CentralCommand: React.FC<CentralCommandProps> = ({ activeModule, onActivate, onReset }) => {
+  const MotionDiv = motion.div as any;
+  const MotionButton = motion.button as any;
 
-export const SolarNavigation: React.FC<SolarNavigationProps> = ({ activePhase, onPhaseChange }) => {
-  
-  // Calculate positions based on active node being at (0,0)
-  const nodePositions = useMemo(() => {
-    const activeIndex = NODES.findIndex(n => n.id === activePhase);
-    const otherNodes = NODES.filter(n => n.id !== activePhase);
-    const radius = 220; // Distance from center
-    
-    return NODES.map((node) => {
-      if (node.id === activePhase) {
-        return { ...node, x: 0, y: 0, scale: 1.2, opacity: 1 };
-      }
-      
-      // Find index in the filtered array to distribute evenly
-      const indexInOrbit = otherNodes.findIndex(n => n.id === node.id);
-      const angle = (indexInOrbit * (360 / otherNodes.length)) * (Math.PI / 180); // Convert to radians
-      
-      // Start form top (-PI/2)
-      const adjustedAngle = angle - Math.PI / 2;
-
-      return {
-        ...node,
-        x: Math.cos(adjustedAngle) * radius,
-        y: Math.sin(adjustedAngle) * radius,
-        scale: 0.8,
-        opacity: 0.7
-      };
-    });
-  }, [activePhase]);
+  // Configuration for the 4 modules
+  const modules = [
+    { id: ModuleID.OVERVIEW, label: 'OVERVIEW', cx: '50%', cy: '15%' },
+    { id: ModuleID.NETWORK, label: 'NETWORK', cx: '85%', cy: '50%' },
+    { id: ModuleID.LOGIC, label: 'LOGIC', cx: '50%', cy: '85%' },
+    { id: ModuleID.ANALYTICS, label: 'ANALYTICS', cx: '15%', cy: '50%' },
+  ];
 
   return (
-    <div className="relative w-[600px] h-[600px] flex items-center justify-center pointer-events-none">
-      {/* Orbital Rings - Decorative */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[440px] h-[440px] rounded-full border border-apex-border/30 animate-pulse-slow" />
-        <div className="w-[300px] h-[300px] rounded-full border border-dashed border-apex-border/20" />
-      </div>
-
-      {/* Connecting Lines (from center to others) */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-        {nodePositions.map((node) => {
-          if (node.id === activePhase) return null;
-          return (
-            <motion.line
-              key={`line-${node.id}`}
-              x1="50%"
-              y1="50%"
-              x2={`calc(50% + ${node.x}px)`}
-              y2={`calc(50% + ${node.y}px)`}
-              stroke="#2A3447"
-              strokeWidth="1"
-              initial={false}
-              animate={{
-                x2: `calc(50% + ${node.x}px)`,
-                y2: `calc(50% + ${node.y}px)`
-              }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            />
-          );
-        })}
-      </svg>
-
-      {/* Nodes */}
-      {nodePositions.map((node) => {
-        const isActive = node.id === activePhase;
-        const Icon = node.icon;
-        
-        return (
-          <motion.button
-            key={node.id}
-            onClick={() => onPhaseChange(node.id)}
-            className={`
-              absolute z-10 flex flex-col items-center justify-center 
-              w-24 h-24 rounded-full pointer-events-auto cursor-pointer
-              transition-colors duration-300 group
-              ${isActive ? 'bg-apex-bg border-2 border-apex-accent shadow-[0_0_30px_rgba(59,130,246,0.3)]' : 'bg-apex-panel border border-apex-border hover:border-apex-accent/50'}
-            `}
-            initial={false}
-            animate={{
-              x: node.x,
-              y: node.y,
-              scale: node.scale,
-              opacity: node.opacity
-            }}
-            transition={{ type: "spring", stiffness: 180, damping: 25 }}
-            whileHover={{ scale: isActive ? 1.25 : 0.9 }}
-          >
-            <Icon 
-              size={isActive ? 32 : 24} 
-              className={`
-                mb-2 ${isActive ? 'text-apex-accent' : 'text-apex-muted group-hover:text-apex-text'}
-              `} 
-            />
-            <span className={`
-              text-[10px] font-mono tracking-wider uppercase
-              ${isActive ? 'text-apex-text font-bold' : 'text-apex-muted'}
-            `}>
-              {node.shortCode}
-            </span>
-            
-            {/* Status Indicator Dot */}
-            <div className={`
-              absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-apex-bg
-              ${node.status === 'complete' ? 'bg-apex-success' : 
-                node.status === 'active' ? 'bg-apex-accent' : 
-                node.status === 'locked' ? 'bg-red-900' : 'bg-apex-warning'}
-            `} />
-          </motion.button>
-        );
-      })}
-      
-      {/* Center Label (Floating near active node) */}
-      <motion.div 
-        className="absolute top-[65%] text-center pointer-events-none"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        key={activePhase} // Re-animate on change
+    <>
+      {/* 
+        THE ECLIPSE CORE
+        This is the central ring that expands to frame the content.
+      */}
+      <MotionDiv
+        layoutId="system-core"
+        className="fixed z-40 flex items-center justify-center overflow-hidden border-2 border-sys-border bg-sys-surface/80 backdrop-blur-sm"
+        initial={false}
+        animate={{
+            width: activeModule ? 'calc(100vw - 48px)' : '320px',
+            height: activeModule ? 'calc(100vh - 48px)' : '320px',
+            borderRadius: activeModule ? '4px' : '9999px',
+            left: '50%',
+            top: '50%',
+            x: '-50%',
+            y: '-50%',
+            borderColor: activeModule ? '#333' : '#333'
+        }}
+        transition={{ 
+            type: "spring", 
+            stiffness: 90, 
+            damping: 20,
+            mass: 1
+        }}
       >
-         <h2 className="text-xl font-mono font-bold text-apex-text tracking-widest">{NODES.find(n => n.id === activePhase)?.label}</h2>
-         <p className="text-xs text-apex-accent font-mono mt-1">ENGINE CONNECTED</p>
-      </motion.div>
-    </div>
+          {/* Internal Complex Geometry (Only visible in center mode) */}
+          <AnimatePresence>
+            {!activeModule && (
+                <MotionDiv
+                    initial={{ opacity: 0, scale: 0.8 }} 
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.2 }}
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                    {/* Outer Static Ring */}
+                    <div className="absolute w-[90%] h-[90%] border border-sys-dim/20 rounded-full" />
+                    
+                    {/* Dashed Rotating Ring */}
+                    <div className="absolute w-[82%] h-[82%] border-2 border-dashed border-sys-dim/40 rounded-full animate-spin-slow" />
+                    
+                    {/* Inner Counter-Rotating Ring */}
+                    <div className="absolute w-[60%] h-[60%] border-2 border-sys-dim/20 rounded-full border-t-sys-accent border-r-transparent border-b-sys-accent border-l-transparent animate-spin-reverse-slow" />
+                    
+                    {/* Central Solid Core */}
+                    <div className="w-16 h-16 bg-sys-surface border border-sys-border rounded-full flex items-center justify-center relative shadow-glow">
+                        <div className="w-2 h-2 bg-sys-accent" />
+                        {/* Crosshairs */}
+                        <div className="absolute w-full h-[1px] bg-sys-border" />
+                        <div className="absolute h-full w-[1px] bg-sys-border" />
+                    </div>
+                </MotionDiv>
+            )}
+          </AnimatePresence>
+      </MotionDiv>
+
+      {/* 
+        MODULE SELECTORS (Satellite Buttons)
+        Visible when system is idle.
+      */}
+      {!activeModule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="relative w-[600px] h-[600px] pointer-events-auto">
+                {modules.map((mod) => (
+                    <MotionButton
+                        key={mod.id}
+                        className="absolute w-32 h-12 flex items-center justify-center group"
+                        style={{ 
+                            left: mod.cx, 
+                            top: mod.cy, 
+                            x: '-50%', 
+                            y: '-50%' 
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => onActivate(mod.id)}
+                    >
+                        <div className="absolute inset-0 bg-sys-surface border border-sys-border group-hover:border-sys-accent transition-colors shadow-lg" />
+                        
+                        {/* Connector Line to Center */}
+                        <div className="absolute w-[100px] h-[1px] bg-sys-border -z-10 group-hover:bg-sys-accent transition-colors"
+                            style={{
+                                top: '50%',
+                                left: '50%',
+                                transformOrigin: 'left center',
+                                transform: `rotate(${
+                                    mod.id === ModuleID.NETWORK ? 180 : 
+                                    mod.id === ModuleID.ANALYTICS ? 0 : 
+                                    mod.id === ModuleID.OVERVIEW ? 90 : 270
+                                }deg) translateX(64px)` // Offset by half button width
+                            }}
+                        />
+
+                        <div className="relative z-10 flex items-center gap-3">
+                             <span className="text-xs font-bold tracking-widest text-sys-text group-hover:text-sys-accent transition-colors font-mono">
+                                {mod.label}
+                             </span>
+                             <div className="w-1.5 h-1.5 bg-sys-dim group-hover:bg-sys-accent" />
+                        </div>
+                    </MotionButton>
+                ))}
+            </div>
+        </div>
+      )}
+
+      {/* 
+        Close/Reset Trigger (Invisible overlay or button)
+        In this system, the "Close" button is inside the Module Frame, 
+        but we can add an overlay click handler if desired.
+      */}
+    </>
   );
 };
