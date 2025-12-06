@@ -1,5 +1,5 @@
 {
-  "name": "System Zero Template",
-  "description": "A generic, high-density industrial interface template. Features a central Eclipse navigation ring, flow-field background, dendritic visualizations, and persistent HUD.",
+  "name": "System Zero - Tactical",
+  "description": "High-density industrial interface. Features a Tactical Visor HUD, Schematic Circuitry background, and Eclipse navigation.",
   "requestFramePermissions": []
 }
