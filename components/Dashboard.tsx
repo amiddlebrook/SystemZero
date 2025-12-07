@@ -54,7 +54,7 @@ export const OverviewModule: React.FC = () => {
                     <span>[10:42:08] Listener active on port 8080.</span>
                     <span>[10:42:09] Decrypting incoming stream...</span>
                     <span>[10:42:10] <span className="text-white">User authentication verified. Level 5 Access granted.</span></span>
-                    <span className="text-sys-accent animate-pulse">>> AWAITING_COMMAND_</span>
+                    <span className="text-sys-accent animate-pulse">&gt;&gt; AWAITING_COMMAND_</span>
                 </div>
             </div>
 
