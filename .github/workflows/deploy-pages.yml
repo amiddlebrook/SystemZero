@@ -65,3 +65,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy
+      - name: Smoke test deployed site and health API
+        env:
+          BASE_URL: https://systemzero.averymiddlebrook2014.workers.dev
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 3 "$BASE_URL/" -o index.html
+          grep -q 'SystemZero' index.html
+          HEALTH="$(curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 3 "$BASE_URL/api/health")"
+          node -e 'const h=JSON.parse(process.argv[1]);if(h.status!=="ok"||h.service!=="systemzero-edge"||Number.isNaN(Date.parse(h.timestamp))){process.exit(1)};console.log("Cloudflare health verified:",h.status,h.colo,h.timestamp)' "$HEALTH"
