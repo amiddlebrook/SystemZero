@@ -60,7 +60,7 @@ GitHub Actions performs these steps automatically.
 
 Cloudflare serves the frontend and GET /api/health from **one Worker**. No GitHub Pages, custom domain, D1, KV, R2, or paid AI service is necessary.
 
-**Costs:** The application targets free operation within Cloudflare Workers Free and GitHub Actions allowances. Free quotas are limited; unbounded traffic is not guaranteed to remain free.
+**Costs:** The application targets free operation within Cloudflare Workers Free and GitHub Actions allowances. Static asset requests are handled directly by Cloudflare's asset service without running the Worker; only /api/* calls consume Worker request quota (100,000 per day on the Free plan). Keep API usage within the free allowance.
 
 ## Commands
 
